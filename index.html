@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tklesson - Employment & Inflation Quiz</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      color: #555;
+    }
+    .question {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .answers {
+      list-style: none;
+      padding: 0;
+    }
+    .answers li {
+      margin: 0.5rem 0;
+    }
+    button.answer-btn {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: white;
+      transition: background-color 0.3s ease;
+    }
+    button.answer-btn:hover:not([disabled]) {
+      background-color: #e0e0e0;
+    }
+    button.answer-btn.correct {
+      background-color: #a2d5a2;
+      border-color: #4caf50;
+      color: #2e7d32;
+    }
+    button.answer-btn.wrong {
+      background-color: #f5a2a2;
+      border-color: #d32f2f;
+      color: #7f1d1d;
+    }
+    .next-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .next-btn:disabled {
+      background-color: #a0a0a0;
+      cursor: not-allowed;
+    }
+    .score {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tklesson Quiz: Employment & Inflation</h1>
+  <h2>20 Questions</h2>
+  <div id="quiz-container">
+    <div class="question" id="question"></div>
+    <ul class="answers" id="answers"></ul>
+    <button class="next-btn" id="next-btn" disabled>Next</button>
+  </div>
+  <div id="score-container" class="score" style="display:none;"></div>
+
+  <script>
+    // Fisher-Yates shuffle
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    const quizData = [
+      {
+        question: "Which of the following best explains the concept of \"hidden unemployment\"?",
+        options: [
+          "People not looking for work because they are discouraged",
+          "Workers in temporary jobs",
+          "Part-time workers seeking full-time employment",
+          "People who have retired early"
+        ],
+        answer: 0
+      },
+      {
+        question: "How does \"cost-push inflation\" affect aggregate supply and what might be its typical causes?",
+        options: [
+          "It shifts aggregate supply to the right due to lower input costs",
+          "It shifts aggregate supply to the left due to rising production costs like wages and raw materials",
+          "It increases aggregate demand leading to higher prices",
+          "It causes deflation by reducing consumer spending"
+        ],
+        answer: 1
+      },
+      // ... (include all your other questions here in the same format) ...
+      {
+        question: "Which policy response is typical to combat cost-push inflation?",
+        options: [
+          "Increasing government spending",
+          "Tightening monetary policy by raising interest rates",
+          "Supply-side policies aimed at reducing production costs",
+          "Lowering taxes to increase demand"
+        ],
+        answer: 2
+      }
+    ];
+
+    // Shuffle questions at start for variety
+    shuffleArray(quizData);
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const nextBtn = document.getElementById("next-btn");
+    const scoreContainer = document.getElementById("score-container");
+    const quizContainer = document.getElementById("quiz-container");
+
+    function loadQuestion() {
+      nextBtn.disabled = true;
+      clearAnswers();
+
+      const q = quizData[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${q.question}`;
+
+      // Prepare options with their original indices
+      const optionsWithIndex = q.options.map((option, index) => ({
+        text: option,
+        originalIndex: index
+      }));
+
+      // Shuffle the options array
+      shuffleArray(optionsWithIndex);
+
+      // Find new index of the correct answer after shuffle
+      const correctOriginalIndex = q.answer;
+      const newCorrectIndex = optionsWithIndex.findIndex(
+        optionObj => optionObj.originalIndex === correctOriginalIndex
+      );
+
+      // Save shuffled answer index to quizData for validation
+      quizData[currentQuestion].shuffledAnswer = newCorrectIndex;
+
+      // Render buttons for shuffled options
+      optionsWithIndex.forEach((optionObj, index) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.textContent = optionObj.text;
+        btn.classList.add("answer-btn");
+        btn.addEventListener("click", () => selectAnswer(index, btn));
+        li.appendChild(btn);
+        answersEl.appendChild(li);
+      });
+    }
+
+    function clearAnswers() {
+      while (answersEl.firstChild) {
+        answersEl.removeChild(answersEl.firstChild);
+      }
+    }
+
+    function selectAnswer(index, btn) {
+      const correctIndex = quizData[currentQuestion].shuffledAnswer;
+      Array.from(answersEl.children).forEach(li => {
+        li.firstChild.disabled = true;
+        if (li.firstChild === btn) {
+          if (index === correctIndex) {
+            btn.classList.add("correct");
+            score++;
+          } else {
+            btn.classList.add("wrong");
+          }
+        } else if (li.firstChild) {
+          // Highlight correct answer button
+          if (li.firstChild.textContent === quizData[currentQuestion].options[quizData[currentQuestion].answer]) {
+            li.firstChild.classList.add("correct");
+          }
+        }
+      });
+      nextBtn.disabled = false;
+    }
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    function showScore() {
+      quizContainer.style.display = "none";
+      scoreContainer.style.display = "block";
+      scoreContainer.textContent = `You scored ${score} out of ${quizData.length}!`;
+    }
+
+    // Start the quiz
+    loadQuestion();
+  </script>
+</body>
+</html>
