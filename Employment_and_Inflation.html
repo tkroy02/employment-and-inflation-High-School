@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tklesson - Employment & Inflation Quiz</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+    .question {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .answers {
+      list-style: none;
+      padding: 0;
+    }
+    .answers li {
+      margin: 0.5rem 0;
+    }
+    button.answer-btn {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: white;
+      transition: background-color 0.3s ease;
+    }
+    button.answer-btn:hover:not([disabled]) {
+      background-color: #e0e0e0;
+    }
+    button.answer-btn.correct {
+      background-color: #a2d5a2;
+      border-color: #4caf50;
+      color: #2e7d32;
+    }
+    button.answer-btn.wrong {
+      background-color: #f5a2a2;
+      border-color: #d32f2f;
+      color: #7f1d1d;
+    }
+    .next-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .next-btn:disabled {
+      background-color: #a0a0a0;
+      cursor: not-allowed;
+    }
+    .score {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tklesson Quiz: Employment & Inflation</h1>
+  <h2>20 Questions</h2>
+  <div id="quiz-container">
+    <div class="question" id="question"></div>
+    <ul class="answers" id="answers"></ul>
+    <button class="next-btn" id="next-btn" disabled>Next</button>
+  </div>
+  <div id="score-container" class="score" style="display:none;"></div>
+
+  <script>
+    // Fisher-Yates shuffle
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    const quizData = [
+      {
+        question: "Which of the following best explains the concept of \"hidden unemployment\"?",
+        options: [
+          "People not looking for work because they are discouraged",
+          "Workers in temporary jobs",
+          "Part-time workers seeking full-time employment",
+          "People who have retired early"
+        ],
+        answer: 0
+      },
+      {
+        question: "How does \"cost-push inflation\" affect aggregate supply and what might be its typical causes?",
+        options: [
+          "It shifts aggregate supply to the right due to lower input costs",
+          "It shifts aggregate supply to the left due to rising production costs like wages and raw materials",
+          "It increases aggregate demand leading to higher prices",
+          "It causes deflation by reducing consumer spending"
+        ],
+        answer: 1
+      },
+      {
+        question: "The Phillips Curve illustrates a trade-off between which two economic factors in the short run?",
+        options: [
+          "Inflation and interest rates",
+          "Inflation and unemployment",
+          "Unemployment and GDP growth",
+          "Inflation and government spending"
+        ],
+        answer: 1
+      },
+      {
+        question: "Which monetary policy tool is most effective in combating demand-pull inflation and why?",
+        options: [
+          "Lowering reserve requirements to increase money supply",
+          "Raising interest rates to reduce consumer and business borrowing",
+          "Increasing government spending to boost aggregate demand",
+          "Reducing taxes to encourage investment"
+        ],
+        answer: 1
+      },
+      {
+        question: "Structural unemployment arises mainly due to:",
+        options: [
+          "Fluctuations in economic activity over the business cycle",
+          "Mismatches between workers’ skills and job requirements due to technological changes",
+          "Seasonal shifts in labor demand",
+          "Short-term transitions between jobs"
+        ],
+        answer: 1
+      },
+      {
+        question: "What distinguishes frictional unemployment from other types?",
+        options: [
+          "It is long-term unemployment caused by skill mismatch",
+          "It occurs when workers are temporarily between jobs due to voluntary transitions",
+          "It results from cyclical downturns in the economy",
+          "It is caused by sudden technological advancements"
+        ],
+        answer: 1
+      },
+      {
+        question: "Which of these statements about the natural rate of unemployment is correct?",
+        options: [
+          "It includes only cyclical unemployment",
+          "It equals zero when the economy is healthy",
+          "It consists of frictional and structural unemployment",
+          "It fluctuates drastically month to month"
+        ],
+        answer: 2
+      },
+      {
+        question: "Hyperinflation is most commonly caused by:",
+        options: [
+          "A sudden increase in aggregate supply",
+          "Excessive growth in the money supply without corresponding economic output",
+          "A decrease in consumer spending",
+          "Falling wages and production costs"
+        ],
+        answer: 1
+      },
+      {
+        question: "What is the primary economic consequence of unexpected inflation on borrowers and lenders?",
+        options: [
+          "Borrowers benefit as they repay loans with less valuable money",
+          "Lenders benefit as loan repayments increase in value",
+          "Both borrowers and lenders lose purchasing power equally",
+          "Inflation has no impact on loans"
+        ],
+        answer: 0
+      },
+      {
+        question: "How does the Consumer Price Index (CPI) measure inflation?",
+        options: [
+          "By calculating changes in GDP over time",
+          "By tracking price changes of a fixed basket of consumer goods and services",
+          "By measuring the unemployment rate monthly",
+          "By calculating government spending growth"
+        ],
+        answer: 1
+      },
+      {
+        question: "Demand-pull inflation can be caused by all of the following EXCEPT:",
+        options: [
+          "Increased consumer spending",
+          "Expansionary fiscal policy",
+          "Decrease in aggregate demand",
+          "Increased business investment"
+        ],
+        answer: 2
+      },
+      {
+        question: "Which of the following is an example of cost-push inflation?",
+        options: [
+          "Increased consumer confidence leading to higher spending",
+          "Rise in oil prices increasing production costs for many goods",
+          "Government tax cuts stimulating demand",
+          "Technological advancements reducing production costs"
+        ],
+        answer: 1
+      },
+      {
+        question: "What role do expectations play in the inflation process?",
+        options: [
+          "Inflation expectations have no impact on actual inflation",
+          "If businesses and consumers expect higher inflation, they may act in ways that actually cause it to rise",
+          "Expectations only affect inflation after several years",
+          "Expectations solely influence unemployment rates"
+        ],
+        answer: 1
+      },
+      {
+        question: "Which of the following best describes cyclical unemployment?",
+        options: [
+          "Unemployment caused by changes in seasons and weather",
+          "Unemployment due to downturns in the business cycle",
+          "Unemployment caused by technological innovation",
+          "Unemployment during transitions between jobs"
+        ],
+        answer: 1
+      },
+      {
+        question: "Which group is most vulnerable to the negative effects of inflation?",
+        options: [
+          "Borrowers with fixed interest loans",
+          "Lenders with fixed interest loans",
+          "Wage earners with indexed salaries",
+          "Exporters benefiting from currency depreciation"
+        ],
+        answer: 1
+      },
+      {
+        question: "Why is it important for central banks to target a moderate inflation rate rather than zero inflation?",
+        options: [
+          "Moderate inflation encourages spending and investment",
+          "Zero inflation causes hyperinflation",
+          "Moderate inflation reduces unemployment to zero",
+          "Zero inflation increases government deficits"
+        ],
+        answer: 0
+      },
+      {
+        question: "Which of the following best explains “stagflation”?",
+        options: [
+          "High inflation combined with low unemployment",
+          "High inflation combined with stagnant economic growth and high unemployment",
+          "Low inflation combined with rapid economic growth",
+          "Deflation combined with economic recession"
+        ],
+        answer: 1
+      },
+      {
+        question: "What does the term \"underemployment\" refer to?",
+        options: [
+          "Workers not seeking jobs",
+          "Workers employed below their skill or education level or working fewer hours than desired",
+          "Long-term unemployed individuals",
+          "Seasonal unemployment"
+        ],
+        answer: 1
+      },
+      {
+        question: "How can unemployment benefits potentially affect the unemployment rate?",
+        options: [
+          "They always reduce unemployment by encouraging people to seek work",
+          "They can increase unemployment if benefits reduce incentives to find a job quickly",
+          "They have no effect on unemployment rates",
+          "They eliminate structural unemployment"
+        ],
+        answer: 1
+      },
+      {
+        question: "Which policy response is typical to combat cost-push inflation?",
+        options: [
+          "Increasing government spending",
+          "Tightening monetary policy by raising interest rates",
+          "Supply-side policies aimed at reducing production costs",
+          "Lowering taxes to increase demand"
+        ],
+        answer: 2
+      }
+    ];
+
+    // Shuffle questions at start for variety
+    shuffleArray(quizData);
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const nextBtn = document.getElementById("next-btn");
+    const scoreContainer = document.getElementById("score-container");
+    const quizContainer = document.getElementById("quiz-container");
+
+    function loadQuestion() {
+      nextBtn.disabled = true;
+      clearAnswers();
+
+      const q = quizData[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${q.question}`;
+
+      // Prepare options with their original indices
+      const optionsWithIndex = q.options.map((option, index) => ({
+        text: option,
+        originalIndex: index
+      }));
+
+      // Shuffle the options array
+      shuffleArray(optionsWithIndex);
+
+      // Find new index of the correct answer after shuffle
+      const correctOriginalIndex = q.answer;
+      const newCorrectIndex = optionsWithIndex.findIndex(
+        optionObj => optionObj.originalIndex === correctOriginalIndex
+      );
+
+      // Save shuffled answer index to quizData for validation
+      quizData[currentQuestion].shuffledAnswer = newCorrectIndex;
+
+      // Render buttons for shuffled options
+      optionsWithIndex.forEach((optionObj, index) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.textContent = optionObj.text;
+        btn.classList.add("answer-btn");
+        btn.addEventListener("click", () => selectAnswer(index, btn));
+        li.appendChild(btn);
+        answersEl.appendChild(li);
+      });
+    }
+
+    function clearAnswers() {
+      while (answersEl.firstChild) {
+        answersEl.removeChild(answersEl.firstChild);
+      }
+    }
+
+    function selectAnswer(index, btn) {
+      const correctIndex = quizData[currentQuestion].shuffledAnswer;
+      Array.from(answersEl.children).forEach(li => {
+        li.firstChild.disabled = true;
+        if (li.firstChild === btn) {
+          if (index === correctIndex) {
+            btn.classList.add("correct");
+            score++;
+          } else {
+            btn.classList.add("wrong");
+          }
+        } else if (li.firstChild) {
+          // Highlight correct answer button
+          if (li.firstChild.textContent === quizData[currentQuestion].options[quizData[currentQuestion].answer]) {
+            li.firstChild.classList.add("correct");
+          }
+        }
+      });
+      nextBtn.disabled = false;
+    }
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    function showScore() {
+      quizContainer.style.display = "none";
+      scoreContainer.style.display = "block";
+      scoreContainer.textContent = `You scored ${score} out of ${quizData.length}!`;
+    }
+
+    // Start the quiz
+    loadQuestion();
+  </script>
+</body>
+</html>
